@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DTC+ ROI Calculator Report</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet"/>
+</head>
+<body class="bg-gray-100 py-10 text-gray-800">
+  <div class="max-w-3xl mx-auto px-4">
+    <h1 class="text-3xl font-bold text-center mb-8">Your Personalized DTC+ ROI Report</h1>
+
+    <form id="roiForm" class="grid grid-cols-1 gap-6 bg-white p-6 rounded shadow">
+      <input type="email" id="business_email" placeholder="Business Email" class="p-2 border rounded" required>
+      <input type="tel" id="phone_number" placeholder="Phone Number" class="p-2 border rounded" required>
+      <input type="number" id="users" placeholder="No. of Salesforce Users" class="p-2 border rounded" required>
+      <input type="number" id="overhead" placeholder="Salesforce Overheads / Year ($)" class="p-2 border rounded" required>
+      <input type="number" id="monthly_requests" placeholder="Avg Requests / Changes per Month" class="p-2 border rounded" required>
+      <input type="number" id="old_delivery_days" placeholder="Avg Time to Fulfill Request (days)" class="p-2 border rounded" required>
+      <input type="number" id="adoption_current" placeholder="Current Adoption Rate (%)" class="p-2 border rounded" required>
+      <input type="number" id="deal_size" placeholder="Average Deal Size ($)" class="p-2 border rounded" required>
+      <input type="number" id="win_rate" placeholder="Average Win Rate (%)" class="p-2 border rounded" required>
+    </form>
+
+    <div class="text-center mt-6">
+      <button onclick="submitDTCPlusROI()" class="bg-blue-600 text-white px-6 py-3 rounded font-bold hover:bg-blue-700">Generate My ROI Report</button>
+    </div>
+
+    <div class="text-center mt-4">
+      <button onclick="downloadPDF()" class="bg-green-600 text-white px-6 py-3 rounded font-bold hover:bg-green-700">Download PDF Report</button>
+    </div>
+
+    <div id="roiResults" class="mt-10 p-6 bg-white shadow rounded"></div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <script>
+    function submitDTCPlusROI() {
+      const users = +document.getElementById('users').value;
+      const overhead = +document.getElementById('overhead').value;
+      const monthly_requests = +document.getElementById('monthly_requests').value;
+      const old_delivery_days = +document.getElementById('old_delivery_days').value;
+      const adoption_current = +document.getElementById('adoption_current').value / 100;
+      const deal_size = +document.getElementById('deal_size').value;
+      const win_rate = +document.getElementById('win_rate').value / 100;
+
+      const email = document.getElementById('business_email').value;
+      const phone = document.getElementById('phone_number').value;
+
+      const dtcplus_cost = 80000;
+      const hourly_rate = 85;
+      const weekly_hours_saved = 3;
+      const adoption_target = 0.9;
+      const deals_per_user = 20;
+      const dtcplus_delivery_days = 2;
+
+      const current_efficiency = users * weekly_hours_saved * hourly_rate * 52 * 0.4;
+      const current_delivery_cost = old_delivery_days * monthly_requests * 12 * hourly_rate;
+      const current_adoption_loss = (0.9 - adoption_current) * 0.4 * overhead;
+      const current_revenue = users * deals_per_user * deal_size * win_rate;
+      const current_total_cost = overhead + current_delivery_cost + current_adoption_loss;
+
+      const reduced_ops_cost = overhead * 0.6;
+      const dtcplus_efficiency = users * weekly_hours_saved * hourly_rate * 52;
+      const dtcplus_delivery = dtcplus_delivery_days * monthly_requests * 12 * hourly_rate;
+      const dtcplus_revenue = users * deals_per_user * deal_size * (win_rate + 0.25);
+      const dtcplus_adoption_loss = (0.9 - adoption_target) * 0.4 * reduced_ops_cost;
+      const dtcplus_total = dtcplus_cost + dtcplus_delivery + dtcplus_adoption_loss;
+
+      const efficiency_gain = dtcplus_efficiency - current_efficiency;
+      const delivery_gain = current_delivery_cost - dtcplus_delivery;
+      const revenue_gain = dtcplus_revenue - current_revenue;
+      const cost_saved = overhead - reduced_ops_cost;
+      const net_roi = ((revenue_gain + efficiency_gain + delivery_gain + cost_saved) / dtcplus_cost) * 100;
+
+      document.getElementById('roiResults').innerHTML = `
+        <h2 class="text-xl font-bold mb-4">📈 Your ROI Breakdown</h2>
+        <p>Currently, you're spending <strong>$${current_total_cost.toLocaleString()}</strong> per year to manage Salesforce with limited efficiency, slow delivery timelines, and missed revenue opportunities due to low adoption and high overhead.</p>
+        <p>With <strong>DTC+</strong>, you'll spend just <strong>$${dtcplus_total.toLocaleString()}</strong> — while gaining access to 200+ certified experts, unlimited execution, built-in adoption training, and AI-powered optimization.</p>
+        <br>
+        <p><strong>Efficiency Gained:</strong> $${efficiency_gain.toLocaleString()}</p>
+        <p><strong>Faster Project Delivery:</strong> $${delivery_gain.toLocaleString()}</p>
+        <p><strong>Revenue Impact:</strong> $${revenue_gain.toLocaleString()}</p>
+        <p><strong>Ops Cost Reduction:</strong> $${cost_saved.toLocaleString()} (40% reduction)</p>
+        <p><strong>Net ROI with DTC+:</strong> ${net_roi.toFixed(2)}%</p>
+        <br>
+        <p class="mt-4"><strong>Conclusion:</strong> With the same resources, DTC+ unlocks higher efficiency, faster change delivery, improved team adoption, and revenue growth of 20–30%. You save time, cut costs, and transform Salesforce into a nonstop revenue engine.</p>
+      `;
+    }
+
+    function downloadPDF() {
+      const element = document.getElementById("roiResults");
+      if (!element.innerHTML.trim()) {
+        alert("Please generate a report first.");
+        return;
+      }
+      html2pdf().from(element).save("DTCplus_ROI_Report.pdf");
+    }
+  </script>
+</body>
+</html>
